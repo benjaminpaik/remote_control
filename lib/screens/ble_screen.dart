@@ -1,6 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:remote_control/models/graph_data_model.dart';
 import 'package:remote_control/widgets/ble_widgets.dart';
@@ -19,7 +21,7 @@ class BlePage extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: FindDevicesScreen(),
       ),
-      drawer: NavigationDrawer(),
+      drawer: const NavigationDrawer(),
       floatingActionButton: StreamBuilder<bool>(
         stream: FlutterBlue.instance.isScanning,
         initialData: false,
@@ -33,8 +35,22 @@ class BlePage extends StatelessWidget {
           } else {
             return FloatingActionButton(
                 child: const Icon(Icons.search),
-                onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: const Duration(seconds: 4)));
+                onPressed: () async {
+                  if (Platform.isAndroid) {
+                    Map<Permission, PermissionStatus> statuses = await [
+                      Permission.bluetooth,
+                      Permission.bluetoothAdvertise,
+                      Permission.bluetoothConnect,
+                      Permission.bluetoothScan,
+                    ].request();
+
+                    if (statuses.values.where((e) => e.isGranted).length ==
+                        statuses.length) {
+                      FlutterBlue.instance
+                          .startScan(timeout: const Duration(seconds: 4));
+                    }
+                  }
+                });
           }
         },
       ),
@@ -55,36 +71,44 @@ class FindDevicesScreen extends StatelessWidget {
             stream: Stream.periodic(const Duration(seconds: 2))
                 .asyncMap((_) => FlutterBlue.instance.connectedDevices),
             initialData: const [],
-            builder: (c, snapshot) => Column(
-              children: snapshot.data!
-                  .map((d) => ListTile(
-                        title: Text(d.name),
-                        subtitle: Text(d.id.toString()),
-                        trailing: StreamBuilder<BluetoothDeviceState>(
-                          stream: d.state,
-                          initialData: BluetoothDeviceState.disconnected,
-                          builder: (c, snapshot) {
-                            if (snapshot.data ==
-                                BluetoothDeviceState.connected) {
-                              return ElevatedButton(
-                                child: const Text('OPEN'),
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Colors.black),
-                                  textStyle: MaterialStateProperty.all<
-                                          TextStyle>(
-                                      Theme.of(context).textTheme.bodyText2!),
-                                ),
-                                onPressed: () => {print("opened")},
-                              );
-                            }
-                            return Text(snapshot.data.toString());
-                          },
-                        ),
-                      ))
-                  .toList(),
-            ),
+            builder: (c, snapshot) {
+              if (snapshot.data == null) {
+                return Column();
+              } else {
+                return Column(
+                  children: snapshot.data!
+                      .map((d) => ListTile(
+                            title: Text(d.name),
+                            subtitle: Text(d.id.toString()),
+                            trailing: StreamBuilder<BluetoothDeviceState>(
+                              stream: d.state,
+                              initialData: BluetoothDeviceState.disconnected,
+                              builder: (c, snapshot) {
+                                if (snapshot.data ==
+                                    BluetoothDeviceState.connected) {
+                                  return ElevatedButton(
+                                    child: const Text('OPEN'),
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              Colors.black),
+                                      textStyle:
+                                          MaterialStateProperty.all<TextStyle>(
+                                              Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText2!),
+                                    ),
+                                    onPressed: () => {print("opened")},
+                                  );
+                                }
+                                return Text(snapshot.data.toString());
+                              },
+                            ),
+                          ))
+                      .toList(),
+                );
+              }
+            },
           ),
           StreamBuilder<List<ScanResult>>(
             stream: FlutterBlue.instance.scanResults,

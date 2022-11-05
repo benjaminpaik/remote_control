@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class ScanResultTile extends StatelessWidget {
-  const ScanResultTile({required this.result, required this.onTap});
+  const ScanResultTile({Key? key, required this.result, required this.onTap}) : super(key: key);
 
   final ScanResult result;
   final VoidCallback onTap;

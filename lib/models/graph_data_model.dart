@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 import 'package:remote_control/widgets/oscilloscope_widget.dart';
 
 const updateInterval = 50;

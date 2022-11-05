@@ -1,10 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-final scopeRoute = '/';
-final bleRoute = '/ble';
+const scopeRoute = '/';
+const bleRoute = '/ble';
 
 class NavigationDrawer extends StatelessWidget {
+  const NavigationDrawer({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

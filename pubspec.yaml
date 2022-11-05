@@ -37,6 +37,7 @@ dependencies:
   provider: ^5.0.0
   flutter_blue: ^0.8.0
   sensors_plus: ^1.2.1
+  permission_handler: ^10.2.0
 
 dev_dependencies:
   flutter_test:
