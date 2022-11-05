@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:remote_control/widgets/oscilloscope_widget.dart';
 
 const updateInterval = 50;
@@ -32,12 +33,23 @@ class GraphDataModel extends ChangeNotifier {
   final _bleWriteValues = ByteData(writeBytes);
   final _bleReadValues = ByteData(readBytes);
 
-  int bleCommand = 0;
+  bool _bleConnected = false;
+  // bool _bleCmdUpdate = false;
+  int _bleCommand = 0;
   CmdMode cmdMode = CmdMode.idle;
 
+  int get bleCommand {
+    return _bleCommand;
+  }
+
+  set bleCommand(value) {
+    _bleCommand = value;
+    notifyListeners();
+  }
+
   final plotData = PlotData([
-    PlotCurve('cmd', maxValue: 1000.0, minValue: -1000.0, color: Colors.red),
-    PlotCurve('sine', maxValue: 1.0, minValue: -1.0, color: Colors.green),],
+    PlotCurve('cmd', maxValue: 6000.0, minValue: -6000.0, color: Colors.red),
+    PlotCurve('pos', maxValue: 3.14159, minValue: -3.14159, color: Colors.green),],
       maxSamples: maxDataPoints.toInt(),
       ySegments: 8,
       backgroundColor: Colors.black);
@@ -54,6 +66,12 @@ class GraphDataModel extends ChangeNotifier {
     elapsedTime = (currentTime - _startTime).toDouble() / 1000.0;
     plotData.curves[0].value = _bleReadValues.getInt32(0).toDouble();
     plotData.curves[1].value = _bleReadValues.getFloat32(4);
+
+    // uncommented for accelerometer control
+    // if(_bleCmdUpdate && _bleConnected) {
+    //   writeCmdValue();
+    // }
+    // _bleCmdUpdate = !_bleCmdUpdate;
 
     // final radians = (2.0 * pi * elapsedTime) / 10.0;
     // plotData.curves[0].value = sin(radians);
@@ -85,6 +103,12 @@ class GraphDataModel extends ChangeNotifier {
           break;
       }
     }
+
+    // uncomment for accelerometer control
+    // accelerometerEvents.listen((event) {
+    //   bleCommand = -(event.x * 200.0).toInt();
+    // });
+    _bleConnected = true;
   }
 
   Future<void> initReadCharacteristic(BluetoothCharacteristic ch) async {
