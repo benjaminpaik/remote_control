@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../definitions.dart';
+
 const scopeRoute = '/';
 const bleRoute = '/ble';
 
@@ -21,7 +23,7 @@ class NavigationDrawer extends StatelessWidget {
           ),
           ListTile(
             title: Text(
-              'BLE',
+              ScreenNames.connect.toUpperCase(),
               style: Theme.of(context).textTheme.bodyText1,
             ),
             onTap: () {
@@ -30,7 +32,7 @@ class NavigationDrawer extends StatelessWidget {
           ),
           ListTile(
             title: Text(
-              'SCOPE',
+              ScreenNames.command.toUpperCase(),
               style: Theme.of(context).textTheme.bodyText1,
             ),
             onTap: () {

@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:provider/provider.dart';
+import 'package:remote_control/definitions.dart';
 import 'package:remote_control/models/graph_data_model.dart';
-import 'package:remote_control/widgets/ble_widgets.dart';
 import 'package:remote_control/widgets/navigation_widget.dart';
 
 class BlePage extends StatelessWidget {
@@ -15,6 +12,7 @@ class BlePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final graphDataModel = Provider.of<GraphDataModel>(context, listen: false);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: const Align(
@@ -22,38 +20,22 @@ class BlePage extends StatelessWidget {
         child: FindDevicesScreen(),
       ),
       drawer: const NavigationDrawer(),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: FlutterBlue.instance.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data ?? false) {
-            return FloatingActionButton(
-              child: const Icon(Icons.stop),
-              onPressed: () => FlutterBlue.instance.stopScan(),
-              backgroundColor: Colors.red,
-            );
-          } else {
-            return FloatingActionButton(
-                child: const Icon(Icons.search),
-                onPressed: () async {
-                  if (Platform.isAndroid) {
-                    Map<Permission, PermissionStatus> statuses = await [
-                      Permission.bluetooth,
-                      Permission.bluetoothAdvertise,
-                      Permission.bluetoothConnect,
-                      Permission.bluetoothScan,
-                    ].request();
-
-                    if (statuses.values.where((e) => e.isGranted).length ==
-                        statuses.length) {
-                      FlutterBlue.instance
-                          .startScan(timeout: const Duration(seconds: 4));
-                    }
-                  }
-                });
-          }
-        },
-      ),
+      floatingActionButton: FloatingActionButton(
+          child: Selector<GraphDataModel, bool>(
+            selector: (_, selectorModel) => selectorModel.scanActive,
+            builder: (context, scanActive, child) {
+              return scanActive
+                  ? const Icon(Icons.stop)
+                  : const Icon(Icons.search);
+            },
+          ),
+          onPressed: () {
+            if (graphDataModel.scanActive) {
+              graphDataModel.stopBleScan();
+            } else {
+              graphDataModel.startBleScan();
+            }
+          }),
     );
   }
 }
@@ -64,71 +46,85 @@ class FindDevicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final graphDataModel = Provider.of<GraphDataModel>(context, listen: false);
-    return SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          StreamBuilder<List<BluetoothDevice>>(
-            stream: Stream.periodic(const Duration(seconds: 2))
-                .asyncMap((_) => FlutterBlue.instance.connectedDevices),
-            initialData: const [],
-            builder: (c, snapshot) {
-              if (snapshot.data == null) {
-                return Column();
-              } else {
-                return Column(
-                  children: snapshot.data!
-                      .map((d) => ListTile(
-                            title: Text(d.name),
-                            subtitle: Text(d.id.toString()),
-                            trailing: StreamBuilder<BluetoothDeviceState>(
-                              stream: d.state,
-                              initialData: BluetoothDeviceState.disconnected,
-                              builder: (c, snapshot) {
-                                if (snapshot.data ==
-                                    BluetoothDeviceState.connected) {
-                                  return ElevatedButton(
-                                    child: const Text('OPEN'),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              Colors.black),
-                                      textStyle:
-                                          MaterialStateProperty.all<TextStyle>(
-                                              Theme.of(context)
-                                                  .textTheme
-                                                  .bodyText2!),
-                                    ),
-                                    onPressed: () => {print("opened")},
-                                  );
-                                }
-                                return Text(snapshot.data.toString());
-                              },
-                            ),
-                          ))
-                      .toList(),
-                );
-              }
-            },
-          ),
-          StreamBuilder<List<ScanResult>>(
-            stream: FlutterBlue.instance.scanResults,
-            initialData: const [],
-            builder: (c, snapshot) => Column(
-              children: snapshot.data!
-                  .map(
-                    (r) => ScanResultTile(
-                      result: r,
-                      onTap: () async {
-                        graphDataModel.connectBle(r.device);
-                      },
-                    ),
-                  )
-                  .toList()
-                  .cast(),
+
+    return Selector<GraphDataModel, int>(
+      selector: (_, selectorModel) => selectorModel.scannedDevices.length,
+      builder: (context, listLength, child) {
+        return ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(5.0),
+            itemCount: listLength,
+            itemBuilder: (context, index) {
+              return BleDeviceTile(
+                  deviceName: graphDataModel.scannedDevices[index].name);
+            });
+      },
+    );
+  }
+}
+
+class BleDeviceTile extends StatelessWidget {
+  const BleDeviceTile({
+    Key? key,
+    required this.deviceName,
+  }) : super(key: key);
+
+  final String deviceName;
+
+  @override
+  Widget build(BuildContext context) {
+    final graphDataModel = Provider.of<GraphDataModel>(context, listen: false);
+
+    final deviceNameText = Text(
+      deviceName,
+      style: const TextStyle(color: textColor, fontSize: standardFontSize),
+    );
+
+    final connectionStatusText =
+        Selector<GraphDataModel, DeviceConnectionState>(
+      selector: (_, selectorModel) => selectorModel.connectionState,
+      builder: (context, _, child) {
+        String status = (deviceName == graphDataModel.connectedDevice?.name)
+            ? graphDataModel.connectionState.name
+            : "";
+        return Text(
+          status,
+          style: const TextStyle(color: textColor, fontSize: standardFontSize),
+        );
+      },
+    );
+
+    final connectButton = ElevatedButton(
+      child: const Text("connect"),
+      onPressed: () {
+        graphDataModel.stopBleScan();
+        graphDataModel.connectBle(deviceName);
+      },
+    );
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Spacer(),
+            SizedBox(
+              child: Column(
+                children: [
+                  deviceNameText,
+                  connectionStatusText,
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+            const Spacer(
+              flex: 5,
+            ),
+            connectButton,
+            const Spacer(),
+          ],
+        ),
+        const Divider(thickness: 1.0),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:remote_control/definitions.dart';
 import 'package:remote_control/screens/ble_screen.dart';
 import 'package:remote_control/screens/scope_screen.dart';
 import 'package:remote_control/widgets/navigation_widget.dart';
@@ -31,8 +32,8 @@ class GraphDataApp extends StatelessWidget {
         ),
         initialRoute: scopeRoute,
         routes: {
-          scopeRoute: (context) => const ScopePage(title: 'SCOPE',),
-          bleRoute: (context) => const BlePage(title: 'BLE',),
+          scopeRoute: (context) => const ScopePage(title: ScreenNames.command,),
+          bleRoute: (context) => const BlePage(title: ScreenNames.connect,),
         },
       ),
     );

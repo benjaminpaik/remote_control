@@ -4,6 +4,8 @@ import 'package:remote_control/models/graph_data_model.dart';
 import 'package:remote_control/widgets/navigation_widget.dart';
 import 'package:remote_control/widgets/oscilloscope_widget.dart';
 
+import '../definitions.dart';
+
 class ScopePage extends StatelessWidget {
   final String title;
 
@@ -59,9 +61,9 @@ class OscilloscopeControls extends StatelessWidget {
               onChangeEnd: (value) {
                 graphDataModel.writeCmdValue();
               },
-              min: bleCommandMin.toDouble(),
-              max: bleCommandMax.toDouble(),
-              divisions: (bleCommandMax - bleCommandMin),
+              min: Command.min.toDouble(),
+              max: Command.max.toDouble(),
+              divisions: (Command.max - Command.min),
               value: bleCommand.toDouble(),
               label: bleCommand.toString(),
               activeColor: Colors.black,
