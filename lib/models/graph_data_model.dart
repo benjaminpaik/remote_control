@@ -25,6 +25,7 @@ class GraphDataModel extends ChangeNotifier {
   final _devices = <DiscoveredDevice>[];
 
   DiscoveredDevice? _connectedDevice;
+  StreamSubscription<ConnectionStateUpdate>? _deviceSubscription;
   QualifiedCharacteristic? _writeCharacteristic;
   QualifiedCharacteristic? _readCharacteristic;
 
@@ -140,7 +141,7 @@ class GraphDataModel extends ChangeNotifier {
 
     if (bleDevice.isNotEmpty) {
       _connectedDevice = bleDevice.first;
-      _ble.connectToDevice(
+      _deviceSubscription = _ble.connectToDevice(
         id: _connectedDevice!.id,
         connectionTimeout: const Duration(seconds: 10),
       ).listen((connectionStateUpdate) {
@@ -191,6 +192,14 @@ class GraphDataModel extends ChangeNotifier {
         print("connection error: ${error.toString()}");
       });
     }
+  }
+
+  void disconnectBle() {
+    _deviceSubscription?.cancel();
+    _connectionState = DeviceConnectionState.disconnected;
+    _writeCharacteristic = null;
+    _readCharacteristic = null;
+    _connectedDevice = null;
   }
 
   void writeCmdMode() {

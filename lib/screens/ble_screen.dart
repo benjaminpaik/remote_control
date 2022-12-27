@@ -86,7 +86,7 @@ class BleDeviceTile extends StatelessWidget {
       selector: (_, selectorModel) => selectorModel.connectionState,
       builder: (context, _, child) {
         String status = (deviceName == graphDataModel.connectedDevice?.name)
-            ? graphDataModel.connectionState.name
+            ? "status: ${graphDataModel.connectionState.name}"
             : "";
         return Text(
           status,
@@ -96,32 +96,49 @@ class BleDeviceTile extends StatelessWidget {
     );
 
     final connectButton = ElevatedButton(
-      child: const Text("connect"),
+      child: Selector<GraphDataModel, DeviceConnectionState>(
+        selector: (_, selectorModel) => selectorModel.connectionState,
+        builder: (context, connectionState, child) {
+          if ((deviceName == graphDataModel.connectedDevice?.name) &&
+              connectionState == DeviceConnectionState.connected) {
+            return const Text("disconnect");
+          } else {
+            return const Text("connect");
+          }
+        },
+      ),
       onPressed: () {
         graphDataModel.stopBleScan();
-        graphDataModel.connectBle(deviceName);
+        if (graphDataModel.connectionState ==
+            DeviceConnectionState.disconnected) {
+          graphDataModel.connectBle(deviceName);
+        } else {
+          graphDataModel.disconnectBle();
+        }
       },
     );
 
     return Column(
       children: [
-        Row(
-          children: [
-            const Spacer(),
-            SizedBox(
-              child: Column(
+        Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Row(
+            children: [
+              Column(
                 children: [
                   deviceNameText,
                   connectionStatusText,
                 ],
               ),
-            ),
-            const Spacer(
-              flex: 5,
-            ),
-            connectButton,
-            const Spacer(),
-          ],
+              const Spacer(
+                flex: 5,
+              ),
+              SizedBox(
+                child: connectButton,
+                width: 120,
+              ),
+            ],
+          ),
         ),
         const Divider(thickness: 1.0),
       ],
