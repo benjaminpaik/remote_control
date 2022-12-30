@@ -94,8 +94,17 @@ class GraphDataModel extends ChangeNotifier {
       } else {
         return false;
       }
+
     } else {
-      return false;
+      var status = await Permission.bluetooth.status;
+
+      if(status.isPermanentlyDenied) {
+        openAppSettings();
+        return false;
+      }
+      else {
+        return true;
+      }
     }
   }
 
