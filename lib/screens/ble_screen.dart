@@ -19,7 +19,7 @@ class BlePage extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: FindDevicesScreen(),
       ),
-      drawer: const NavigationDrawer(),
+      drawer: const CustomNavigationDrawer(),
       floatingActionButton: FloatingActionButton(
           child: Selector<GraphDataModel, bool>(
             selector: (_, selectorModel) => selectorModel.scanActive,

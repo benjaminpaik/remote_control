@@ -26,7 +26,7 @@ class ScopePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      drawer: const NavigationDrawer(),
+      drawer: const CustomNavigationDrawer(),
       body: portrait
           ? Column(
               mainAxisAlignment: MainAxisAlignment.start,

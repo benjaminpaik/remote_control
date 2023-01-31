@@ -5,8 +5,8 @@ import '../definitions.dart';
 const scopeRoute = '/';
 const bleRoute = '/ble';
 
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({Key? key}) : super(key: key);
+class CustomNavigationDrawer extends StatelessWidget {
+  const CustomNavigationDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +18,13 @@ class NavigationDrawer extends StatelessWidget {
             decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             child: Text(
               'Menu',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.displayLarge,
             ),
           ),
           ListTile(
             title: Text(
               ScreenNames.connect.toUpperCase(),
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             onTap: () {
               Navigator.pushReplacementNamed(context, bleRoute);
@@ -33,7 +33,7 @@ class NavigationDrawer extends StatelessWidget {
           ListTile(
             title: Text(
               ScreenNames.command.toUpperCase(),
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             onTap: () {
               Navigator.pushReplacementNamed(context, scopeRoute);
