@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 const Color textColor = Colors.black;
 const double standardFontSize = 15;
 
-class ScreenNames {
-  static const connect = "connect";
-  static const command = "command";
+class RouteData {
+  final String name, route;
+  const RouteData(this.name, this.route);
 }
+
+const connectRoute = RouteData('Connect', '/connect');
+const controlRoute = RouteData('Control', '/');
+
+final routeData = [connectRoute, controlRoute];
 
 class Command {
   static const max = 1000;

@@ -1,16 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:remote_control/models/screen_model.dart';
 
 import '../definitions.dart';
-
-const scopeRoute = '/';
-const bleRoute = '/ble';
 
 class CustomNavigationDrawer extends StatelessWidget {
   const CustomNavigationDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+    final screenModel = Provider.of<ScreenModel>(context, listen: false);
+
+    return Selector<ScreenModel, int>(
+        selector: (_, selectorModel) => selectorModel.screenIndex,
+        builder: (context, screenIndex, child) {
+          return NavigationDrawer(
+            onDestinationSelected: (int index) {
+              screenModel.screenIndex = index;
+              if(index < routeData.length) {
+                Navigator.pushReplacementNamed(context, routeData[index].route);
+              }
+            },
+            selectedIndex: screenIndex,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28, 80, 16, 30),
+                child: Text(
+                  'Navigation',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              NavigationDrawerDestination(
+                icon: const Icon(Icons.bluetooth),
+                label: Text(connectRoute.name),
+              ),
+              NavigationDrawerDestination(
+                  icon: const Icon(Icons.auto_graph),
+                  label: Text(controlRoute.name)),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(28, 16, 28, 10),
+                child: Divider(),
+              ),
+            ],
+          );
+        });
+  }
+}
+
+/*
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
@@ -27,7 +64,6 @@ class CustomNavigationDrawer extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             onTap: () {
-              Navigator.pushReplacementNamed(context, bleRoute);
             },
           ),
           ListTile(
@@ -40,7 +76,4 @@ class CustomNavigationDrawer extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-}
+      ),*/
