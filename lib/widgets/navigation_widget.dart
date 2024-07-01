@@ -5,7 +5,7 @@ import 'package:remote_control/models/screen_model.dart';
 import '../definitions.dart';
 
 class CustomNavigationDrawer extends StatelessWidget {
-  const CustomNavigationDrawer({Key? key}) : super(key: key);
+  const CustomNavigationDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +15,7 @@ class CustomNavigationDrawer extends StatelessWidget {
         selector: (_, selectorModel) => selectorModel.screenIndex,
         builder: (context, screenIndex, child) {
           return NavigationDrawer(
+            indicatorColor: Theme.of(context).focusColor,
             onDestinationSelected: (int index) {
               screenModel.screenIndex = index;
               if(index < routeData.length) {

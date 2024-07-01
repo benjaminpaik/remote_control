@@ -1,7 +1,4 @@
 
-import 'package:flutter/material.dart';
-
-const Color textColor = Colors.black;
 const double standardFontSize = 15;
 
 class RouteData {

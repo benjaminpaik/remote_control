@@ -9,7 +9,7 @@ import '../definitions.dart';
 class ScopePage extends StatelessWidget {
   final String title;
 
-  const ScopePage({Key? key, required this.title}) : super(key: key);
+  const ScopePage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class ScopePage extends StatelessWidget {
 class OscilloscopeControls extends StatelessWidget {
   final bool portrait;
 
-  const OscilloscopeControls(this.portrait, {Key? key}) : super(key: key);
+  const OscilloscopeControls(this.portrait, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +155,7 @@ class OscilloscopeControls extends StatelessWidget {
 
 class OscilloscopePlots extends StatelessWidget {
 
-  const OscilloscopePlots({Key? key}) : super(key: key);
+  const OscilloscopePlots({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +164,7 @@ class OscilloscopePlots extends StatelessWidget {
       child: Selector<GraphDataModel, double>(
         selector: (_, selectorModel) => selectorModel.elapsedTime,
         builder: (context, selectorTuple, child) {
-          return Oscilloscope(key: key, plotData: graphDataModel.plotData);
+          return Oscilloscope(graphDataModel.plotData);
         },
       ),
     );

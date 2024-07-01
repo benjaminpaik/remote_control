@@ -8,7 +8,7 @@ import 'package:remote_control/widgets/navigation_widget.dart';
 class BlePage extends StatelessWidget {
   final String title;
 
-  const BlePage({Key? key, required this.title}) : super(key: key);
+  const BlePage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +21,15 @@ class BlePage extends StatelessWidget {
       ),
       drawer: const CustomNavigationDrawer(),
       floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            if (graphDataModel.scanActive) {
+              graphDataModel.stopBleScan();
+            } else {
+              graphDataModel.startBleScan();
+            }
+          },
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           child: Selector<GraphDataModel, bool>(
             selector: (_, selectorModel) => selectorModel.scanActive,
             builder: (context, scanActive, child) {
@@ -29,19 +38,13 @@ class BlePage extends StatelessWidget {
                   : const Icon(Icons.search);
             },
           ),
-          onPressed: () {
-            if (graphDataModel.scanActive) {
-              graphDataModel.stopBleScan();
-            } else {
-              graphDataModel.startBleScan();
-            }
-          }),
+      ),
     );
   }
 }
 
 class FindDevicesScreen extends StatelessWidget {
-  const FindDevicesScreen({Key? key}) : super(key: key);
+  const FindDevicesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,19 +69,20 @@ class FindDevicesScreen extends StatelessWidget {
 
 class BleDeviceTile extends StatelessWidget {
   const BleDeviceTile({
-    Key? key,
+    super.key,
     required this.deviceName,
-  }) : super(key: key);
+  });
 
   final String deviceName;
 
   @override
   Widget build(BuildContext context) {
     final graphDataModel = Provider.of<GraphDataModel>(context, listen: false);
+    final textColor = Theme.of(context).colorScheme.primary;
 
     final deviceNameText = Text(
       deviceName,
-      style: const TextStyle(color: textColor, fontSize: standardFontSize),
+      style: TextStyle(color: textColor, fontSize: standardFontSize),
     );
 
     final connectionStatusText =
@@ -90,7 +94,7 @@ class BleDeviceTile extends StatelessWidget {
             : "";
         return Text(
           status,
-          style: const TextStyle(color: textColor, fontSize: standardFontSize),
+          style: TextStyle(color: textColor, fontSize: standardFontSize),
         );
       },
     );
@@ -134,8 +138,8 @@ class BleDeviceTile extends StatelessWidget {
                 flex: 5,
               ),
               SizedBox(
-                child: connectButton,
                 width: 120,
+                child: connectButton,
               ),
             ],
           ),

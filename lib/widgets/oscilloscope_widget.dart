@@ -157,13 +157,13 @@ class PlotCurve {
 class Oscilloscope extends StatefulWidget {
   final PlotData plotData;
 
-  const Oscilloscope({required key, required this.plotData}) : super(key: key);
+  const Oscilloscope(this.plotData, {super.key});
 
   @override
-  _OscilloscopeState createState() => _OscilloscopeState();
+  OscilloscopeState createState() => OscilloscopeState();
 }
 
-class _OscilloscopeState extends State<Oscilloscope>
+class OscilloscopeState extends State<Oscilloscope>
     with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {

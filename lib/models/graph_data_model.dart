@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,16 +89,10 @@ class GraphDataModel extends ChangeNotifier {
         Permission.bluetoothConnect,
         Permission.bluetoothScan,
       ].request();
-
-      if (statuses.values.where((e) => e.isGranted).length == statuses.length) {
-        return true;
-      } else {
-        return false;
-      }
-
-    } else {
-      var status = await Permission.bluetooth.status;
-
+      // the number of granted permissions matches the number of requested permissions
+      return (statuses.values.where((e) => e.isGranted).length == statuses.length);
+    } else if(Platform.isIOS) {
+      final status = await Permission.bluetooth.status;
       if(status.isPermanentlyDenied) {
         openAppSettings();
         return false;
@@ -105,6 +100,9 @@ class GraphDataModel extends ChangeNotifier {
       else {
         return true;
       }
+    }
+    else {
+      return false;
     }
   }
 
@@ -124,7 +122,7 @@ class GraphDataModel extends ChangeNotifier {
             notifyListeners();
           }
         }
-      }, onError: (Object e) => print('Device scan fails with error: $e'));
+      }, onError: (Object e) => log('Device scan fails with error: $e'));
     }
   }
 
@@ -154,51 +152,51 @@ class GraphDataModel extends ChangeNotifier {
         id: _connectedDevice!.id,
         connectionTimeout: const Duration(seconds: 10),
       ).listen((connectionStateUpdate) {
-
         _connectionState = connectionStateUpdate.connectionState;
-
         if (connectionStateUpdate.connectionState ==
             DeviceConnectionState.connected) {
-          _ble.discoverServices(_connectedDevice!.id).then((services) {
-            for (final service in services) {
-              if (_shortUUID(service.serviceId.toString()) ==
-                  BleSettings.customServiceUuid) {
-                for (final characteristic in service.characteristicIds) {
-                  if (_writeCharacteristic == null &&
-                      _shortUUID(characteristic.toString()) ==
-                          BleSettings.writeCharacteristicUuid) {
-                    _writeCharacteristic = QualifiedCharacteristic(
-                        characteristicId: characteristic,
-                        serviceId: service.serviceId,
-                        deviceId: _connectedDevice!.id);
-                  }
-                  if (_readCharacteristic == null &&
-                      _shortUUID(characteristic.toString()) ==
-                          BleSettings.readCharacteristicUuid) {
-                    _readCharacteristic = QualifiedCharacteristic(
-                        characteristicId: characteristic,
-                        serviceId: service.serviceId,
-                        deviceId: _connectedDevice!.id);
+          _ble.discoverAllServices(_connectedDevice!.id).then((value) {
+            _ble.getDiscoveredServices(_connectedDevice!.id).then((services) {
+              for (final service in services) {
+                if (_shortUUID(service.id.toString()) ==
+                    BleSettings.customServiceUuid) {
+                  for (final ch in service.characteristics) {
+                    if (_writeCharacteristic == null &&
+                        _shortUUID(ch.id.toString()) ==
+                            BleSettings.writeCharacteristicUuid) {
+                      _writeCharacteristic = QualifiedCharacteristic(
+                          characteristicId: ch.id,
+                          serviceId: service.id,
+                          deviceId: _connectedDevice!.id);
+                    }
+                    if (_readCharacteristic == null &&
+                        _shortUUID(ch.id.toString()) ==
+                            BleSettings.readCharacteristicUuid) {
+                      _readCharacteristic = QualifiedCharacteristic(
+                          characteristicId: ch.id,
+                          serviceId: service.id,
+                          deviceId: _connectedDevice!.id);
 
-                    _ble.subscribeToCharacteristic(_readCharacteristic!).listen(
-                        (data) {
-                      if (data.length == BleSettings.readBytes) {
-                        for (int i = 0; i < BleSettings.readBytes; i++) {
-                          _bleReadValues.setUint8(i, data[i]);
-                        }
-                      }
-                    }, onError: (dynamic error) {
-                      print("error: $error}");
-                    });
+                      _ble.subscribeToCharacteristic(_readCharacteristic!).listen(
+                              (data) {
+                            if (data.length == BleSettings.readBytes) {
+                              for (int i = 0; i < BleSettings.readBytes; i++) {
+                                _bleReadValues.setUint8(i, data[i]);
+                              }
+                            }
+                          }, onError: (dynamic error) {
+                        log("characteristic subscription error: $error}");
+                      });
+                    }
                   }
+                  break;
                 }
-                break;
               }
-            }
+            });
           });
         }
       }, onError: (Object error) {
-        print("connection error: ${error.toString()}");
+        log("connection error: ${error.toString()}");
       });
     }
   }
@@ -214,7 +212,7 @@ class GraphDataModel extends ChangeNotifier {
   void writeCmdMode() {
     _bleWriteValues.setInt8(0, (cmdMode.index + 1));
     if (_writeCharacteristic != null) {
-      _ble.writeCharacteristicWithoutResponse(_writeCharacteristic!,
+      _ble.writeCharacteristicWithResponse(_writeCharacteristic!,
           value: _bleWriteValues.buffer.asUint8List());
     }
   }

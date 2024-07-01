@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:remote_control/definitions.dart';
@@ -10,27 +11,28 @@ import 'models/graph_data_model.dart';
 void main() => runApp(const GraphDataApp());
 
 class GraphDataApp extends StatelessWidget {
-  const GraphDataApp({Key? key}) : super(key: key);
+  const GraphDataApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(
+      brightness: Brightness.dark,
+      seedColor: Colors.black,
+      primary: Colors.white,
+      onPrimary: Colors.black,
+    );
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<ScreenModel>(
-            create: (context) => ScreenModel()),
+        ChangeNotifierProvider<ScreenModel>(create: (context) => ScreenModel()),
         ChangeNotifierProvider<GraphDataModel>(
             create: (context) => GraphDataModel()),
       ],
       child: MaterialApp(
         title: 'Remote Control',
         theme: ThemeData(
-          primaryColor: Colors.blue,
-          textTheme: const TextTheme(
-            displayLarge: TextStyle(fontSize: 30.0, fontWeight: FontWeight.normal, color: Colors.white),
-            bodyLarge: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal, color: Colors.black),
-            bodyMedium: TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal, color: Colors.white),
-          ), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlue),
+          colorScheme: colorScheme,
         ),
         initialRoute: controlRoute.route,
         routes: {
